@@ -1,0 +1,14 @@
+FROM ros:kinetic-perception
+RUN apt-get update &&\
+    apt-get install -y \
+        ros-kinetic-avt-vimba-camera \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+ARG VIMBA_TARBALL=Vimba_v2.1.3_Linux.tgz
+ARG VIMBA_SDK="https://www.alliedvision.com/fileadmin/content/software/software/Vimba/${VIMBA_TARBALL}"
+ADD ${VIMBA_SDK} /
+RUN tar --wildcards -xzf ${VIMBA_TARBALL} 'Vimba*/Vimba*TL/CTI/x86_64bit'
+ARG VIMBA_SDK_PREFIX=Vimba_2_1
+ENV GENICAM_GENTL64_PATH=/${VIMBA_SDK_PREFIX}/VimbaGigETL/CTI/x86_64bit:/${VIMBA_SDK_PREFIX}/VimbaUSBETL/CTI/x86_64bit
+ENV ROS_MASTER_URI=http://master:11311
+ADD camera.launch /
+CMD roslaunch /camera.launch

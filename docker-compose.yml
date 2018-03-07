@@ -1,0 +1,72 @@
+version: '2.3'
+networks:
+  robot:
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: fdff:0cea::/16
+  gigecamera:
+    driver: macvlan
+    ipam:
+      config:
+        - subnet: 192.168.1.0/24
+          ip_range: 192.168.1.128/25
+    driver_opts:
+      parent: enp0s25
+
+volumes:
+  calibration:
+
+services:
+  master:
+    image: ros:kinetic-ros-core
+    environment:
+      - ROS_MASTER_URI=http://master:11311
+      - ROS_HOSTNAME=master
+    command: roslaunch --core
+    networks:
+      - robot
+    stop_signal: SIGINT
+  camera:
+    depends_on:
+      - master
+    build: .
+    image: vimba
+    environment:
+      - ROS_MASTER_URI=http://master:11311
+      - ROS_HOSTNAME=camera
+    networks:
+      - robot
+      - gigecamera
+    volumes:
+      - type: volume
+        source: calibration
+        target: /calibration
+        read_only: false
+      - type: bind
+        source: /home/russel/vimba-camera/camera.launch
+        target: /camera.launch
+    stop_signal: SIGINT
+  viewer:
+    depends_on:
+      - master
+    build:
+      context: .
+      dockerfile: Dockerfile.viewer
+    image: osrf_ros:kinetic-desktop-opengl
+    environment:
+      - ROS_MASTER_URI=http://master:11311
+      - ROS_HOSTNAME=viewer
+      - DISPLAY=:0.0
+      - QT_X11_NO_MITSHM=1
+    command: rqt_image_view /aux_camera/image_raw
+    networks:
+      - robot
+    volumes:
+      - type: bind
+        source: /tmp/.X11-unix
+        target: /tmp/.X11-unix
+        read_only: false
+    devices:
+      - "/dev/dri:/dev/dri"
+    stop_signal: SIGINT
