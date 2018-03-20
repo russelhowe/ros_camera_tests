@@ -4,13 +4,13 @@ networks:
     enable_ipv6: true
     ipam:
       config:
-        - subnet: fdff:0cea::/16
+        - subnet: fdff:0cea::/32
   gigecamera:
     driver: macvlan
     ipam:
       config:
-        - subnet: 192.168.1.0/24
-          ip_range: 192.168.1.128/25
+        - subnet: 192.168.0.0/16
+          ip_range: 192.168.2.128/26
     driver_opts:
       parent: enp0s25
 
@@ -27,17 +27,20 @@ services:
     networks:
       - robot
     stop_signal: SIGINT
-  camera:
+  vimba_camera:
     depends_on:
       - master
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.vimba
     image: vimba
     environment:
       - ROS_MASTER_URI=http://master:11311
-      - ROS_HOSTNAME=camera
+      - ROS_HOSTNAME=vimba_camera
     networks:
-      - robot
-      - gigecamera
+      robot:
+      gigecamera:
+        ipv4_address: 192.168.1.1
     volumes:
       - type: volume
         source: calibration
@@ -45,6 +48,29 @@ services:
         read_only: false
       - type: bind
         source: /home/russel/vimba-camera/camera.launch
+        target: /camera.launch
+    stop_signal: SIGINT
+  ptgrey_camera:
+    depends_on:
+      - master
+    build:
+      context: .
+      dockerfile: Dockerfile.flycap
+    image: flycap
+    environment:
+      - ROS_MASTER_URI=http://master:11311
+      - ROS_HOSTNAME=ptgrey_camera
+    networks:
+      robot:
+      gigecamera:
+          ipv4_address: 192.168.5.1
+    volumes:
+      - type: volume
+        source: calibration
+        target: /calibration
+        read_only: false
+      - type: bind
+        source: /home/russel/vimba-camera/ptgrey.launch
         target: /camera.launch
     stop_signal: SIGINT
   viewer:

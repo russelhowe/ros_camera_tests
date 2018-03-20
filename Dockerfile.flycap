@@ -1,0 +1,22 @@
+FROM ros:kinetic-perception
+RUN apt-get update &&\
+    apt-get install -y \
+        ros-kinetic-pointgrey-camera-driver \
+        iputils-ping \
+        iproute2 \
+        libraw1394-11 \
+        libgtkmm-2.4-1v5 \
+        libglademm-2.4-1v5 \
+        libgtkglextmm-x11-1.2-dev \
+        libgtkglextmm-x11-1.2 \
+        libusb-1.0-0 \
+        libglademm-2.4-dev \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+ARG FLYCAP=flycapture2-2.12.3.2-amd64
+ADD ${FLYCAP}-pkg.tgz /flycap
+RUN dpkg -i  /flycap/${FLYCAP}/*.deb
+ENV ROS_MASTER_URI=http://master:11311
+ADD ptgrey.launch /camera.launch
+ADD ros-kinetic-pointgrey-camera-drivers_20180320-1_amd64.deb /tmp
+RUN dpkg -i --force-overwrite /tmp/ros-*.deb
+CMD roslaunch /camera.launch
