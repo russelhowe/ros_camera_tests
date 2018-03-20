@@ -85,7 +85,6 @@ services:
       - ROS_HOSTNAME=viewer
       - DISPLAY=:0.0
       - QT_X11_NO_MITSHM=1
-    command: rqt_image_view /aux_camera/image_raw
     networks:
       - robot
     volumes:

@@ -11,4 +11,5 @@ ARG VIMBA_SDK_PREFIX=Vimba_2_1
 ENV GENICAM_GENTL64_PATH=/${VIMBA_SDK_PREFIX}/VimbaGigETL/CTI/x86_64bit:/${VIMBA_SDK_PREFIX}/VimbaUSBETL/CTI/x86_64bit
 ENV ROS_MASTER_URI=http://master:11311
 ADD camera.launch /
-CMD roslaunch /camera.launch
+ADD wait-for-it.sh /
+CMD /wait-for-it.sh -s -q -t 0 master:11311 -- roslaunch /camera.launch

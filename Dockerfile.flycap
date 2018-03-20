@@ -19,4 +19,5 @@ ENV ROS_MASTER_URI=http://master:11311
 ADD ptgrey.launch /camera.launch
 ADD ros-kinetic-pointgrey-camera-drivers_20180320-1_amd64.deb /tmp
 RUN dpkg -i --force-overwrite /tmp/ros-*.deb
-CMD roslaunch /camera.launch
+ADD wait-for-it.sh /
+CMD /wait-for-it.sh -s -q -t 0 master:11311 -- roslaunch /camera.launch
