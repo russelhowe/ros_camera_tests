@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# Start a shell on the ROS network
+
 docker run -it --rm \
     --env DISPLAY=:0.0 \
     --env QT_X11_NO_MITSHM=1 \

@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# run rqt_reconfigure on the robot network
+
 docker run -d --rm \
     --env DISPLAY=:0.0 \
     --env QT_X11_NO_MITSHM=1 \

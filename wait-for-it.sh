@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 #   Use this script to test if a given TCP host/port are available
 
+# Downloaded from https://github.com/vishnubob/wait-for-it
+
 cmdname=$(basename $0)
 
 echoerr() { if [[ $QUIET -ne 1 ]]; then echo "$@" 1>&2; fi }
