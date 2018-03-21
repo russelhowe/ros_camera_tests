@@ -11,13 +11,25 @@ RUN apt-get update &&\
         libgtkglextmm-x11-1.2 \
         libusb-1.0-0 \
         libglademm-2.4-dev \
+        ros-kinetic-roslint \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 ARG FLYCAP=flycapture2-2.12.3.2-amd64
 ADD ${FLYCAP}-pkg.tgz /flycap
 RUN dpkg -i  /flycap/${FLYCAP}/*.deb
+ARG POINTGREY_DRIVERS_REPO=https://github.com/FinnLinxxx/pointgrey_camera_driver.git
+RUN /bin/bash -c \
+    "source /opt/ros/kinetic/setup.bash &&\
+    mkdir -p /usr/local/src/workspace/src &&\
+    cd /usr/local/src/workspace/src &&\
+    git clone ${POINTGREY_DRIVERS_REPO} &&\
+    cd ../ &&\
+    catkin_make -DCMAKE_BUILD_TYPE=Relaese \
+                -DCMAKE_INSTALL_PREFIX=/opt/ros/kinetic \
+                install &&\
+    cd / &&\
+    rm -rf /usr/local/src/workspace"
 ENV ROS_MASTER_URI=http://master:11311
 ADD ptgrey.launch /camera.launch
-ADD ros-kinetic-pointgrey-camera-drivers_20180320-1_amd64.deb /tmp
-RUN dpkg -i --force-overwrite /tmp/ros-*.deb
 ADD wait-for-it.sh /
 CMD /wait-for-it.sh -s -q -t 0 master:11311 -- roslaunch /camera.launch
+
