@@ -1,0 +1,43 @@
+FROM ros:kinetic-ros-core
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# packages needed to build aravis
+RUN apt-get update &&\
+    apt-get install -y \
+        autoconf \
+        intltool \
+        gtk-doc-tools\
+        libglib2.0-dev \
+        libxml2-dev \
+        zlib1g-dev
+
+ARG ARAVIS_SRC=https://github.com/AravisProject/aravis.git
+RUN cd /usr/local/src &&\
+    git clone ${ARAVIS_SRC} &&\
+    cd aravis &&\
+    ./autogen.sh &&\
+    make install &&\
+    cd / &&\
+    rm -rf /usr/local/src/aravis
+
+ARG CAMERA_ARAVIS_SRC=https://github.com/embarktrucks/camera_aravis.git
+RUN . /opt/ros/kinetic/setup.sh &&\
+    mkdir -p /usr/local/src/workspace/src &&\
+    cd /usr/local/src/workspace/src &&\
+    git clone ${CAMERA_ARAVIS_SRC} &&\
+    cd camera_aravis/cfg &&\
+    /bin/bash -c "for x in *.cfg; do mv \$x \${x/_/}; done" &&\
+    cd - &&\
+    sed -i 's/cfg\/CameraAravis_/cfg\/CameraAravis/g' camera_aravis/CMakeLists.txt &&\
+    cd ../ &&\
+    rosdep install --from-paths src --ignore-src -r -y &&\
+    catkin_make -DCMAKE_BUILD_TYPE=Relaese \
+                -DCMAKE_INSTALL_PREFIX=/opt/ros/kinetic \
+                install &&\
+    cd / &&\
+    rm -rf /usr/local/src/workspace
+ENV ROS_MASTER_URI=http://master:11311
+ADD aravis_avt.launch /camera.launch
+ADD wait-for-it.sh /
+CMD /wait-for-it.sh -s -q -t 0 master:11311 -- roslaunch /camera.launch
